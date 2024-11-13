@@ -22,7 +22,6 @@ def clear_log():
     global message_box
     message_box.delete('1.0', tk.END)
 
-# Arduino Control Functions
 def send_command(command):
     pass
     #ser.write((command + '\n').encode())
@@ -36,7 +35,7 @@ def add_point():
     if len(x_coord) <= 0 or len(y_coord) <= 0 or len(speed) <= 0:
         write_message("Error: please insert both X and Y coordinates plus a speed value for the displacement.\n")
     elif len(route_speed) >= MAX_POINTS:
-        write_message(f"Error: the route can only have a maximum of {MAX_POINTS} points.\n")
+        write_message(f"Warning: The robot's route can have a\nmaximum of {MAX_POINTS} middle points.\n")
     elif float(speed) <= 0:
         write_message(f"Error: speed of displacement must be strictly positive.\n")
     else:
@@ -56,6 +55,7 @@ def clear_route():
 
 def show_route():
     global route_x, route_y, route_speed, route_loaded
+    clear_log()
     len_x = len(route_x)
     len_y = len(route_y)
     len_s = len(route_speed)
@@ -91,7 +91,7 @@ def load_route():
         print(f"Command: {command_y}")
         #send_command(f""{command_y}")
         print(f"Command: {command_s}")
-        #send_command(f""{command_y}")
+        #send_command(f""{command_s}")
         write_message("Route Loaded.\n")
         route_loaded = True
 
@@ -101,7 +101,7 @@ def start_movement():
     else:
         write_message("Movement Started.\n")
         print("Command: START")
-        #send_command(f"STOP")
+        #send_command(f"START")
 
 def stop_movement():
     write_message("Movement Stopped.\n")
@@ -112,14 +112,6 @@ def reset_position():
     write_message("Resetting Position.\n")
     print("Comando: RESET")
     #send_command(f"RESET")
-
-def set_speed_x(val):
-    print(f"Comando: SPEED_X {val}")
-    #send_command(f"SPEED_X {val}")
-
-def set_speed_y(val):
-    print(f"Comando: SPEED_Y {val}")
-    #send_command(f"SPEED_Y {val}")
 
 def initialize_gui():
     window = tk.Tk()
@@ -149,13 +141,13 @@ def initialize_gui():
     frame_entries.columnconfigure([0, 1], weight=1)
     frame_entries.rowconfigure([0, 1, 2], weight=1)
 
-    x_label = tk.Label(frame_entries, text="X:")
+    x_label = tk.Label(frame_entries, text="X Position:")
     x_label.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
     x_entry = tk.Entry(frame_entries, width=5)
     x_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
-    y_label = tk.Label(frame_entries, text="Y:")
+    y_label = tk.Label(frame_entries, text="Y Position:")
     y_label.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
     y_entry = tk.Entry(frame_entries, width=5)
@@ -205,7 +197,7 @@ def initialize_gui():
     position_label = tk.Label(status_frame, text="Current Position: X: 0, Y: 0")
     position_label.grid(row=1, column=0, sticky="ew")
 
-    warning_label = tk.Label(status_frame, text="The robot's route can have a\nmaximum of 10 middle points.")
+    warning_label = tk.Label(status_frame, text=f"Warning: The robot's route can have a\nmaximum of {MAX_POINTS} middle points.")
     warning_label.grid(row=0, column=1, sticky="ew")
 
     return window, x_entry, y_entry, speed_entry, message_box, status_label, position_label
@@ -248,49 +240,3 @@ update_status()
 window.mainloop()
 # Fechar a porta serial ao fechar a GUI
 #ser.close()
-
-"""
-/* Function to parse the commands in the Arduino side */
-void parseCommand(String command) {
-  if (command.startsWith("MOVE")) {
-    int xPos = command.substring(command.indexOf('X') + 1, command.indexOf(' ')).toInt();
-    int yPos = command.substring(command.indexOf('Y') + 1).toInt();
-    // DO SOMETHING WITH xPos and yPos
-  } else if (command.startsWith("SPEED_X")) {
-    int speedX = command.substring(8).toInt();
-    // DO SOMETHING WITH speedX
-  } else if (command.startsWith("SPEED_Y")) {
-    int speedY = command.substring(8).toInt();
-    // DO SOMETHING WITH speedY
-  } else if (command == "STOP") {
-    // DO SOMETHING
-  } else if (command == "RESET") {
-    // DO SOMETHING
-  }
-}
-
-void loop() {
-  // Verifies if Python has sent any commands
-  if (Serial.available() > 0) {
-    String command = Serial.readStringUntil('\n');
-    parseCommand(command);
-  }
-
-  // Do something with the motors
-
-  // Send current info to Python
-  sendStatus();
-  delay(100);
-}
-
-void sendStatus() {
-  Serial.print("X: ");
-  Serial.print("currentXpos\n");
-  Serial.print("Y: ");
-  Serial.print("currentYpos\n");
-  Serial.print("Vx: ");
-  Serial.print("currentXspeed\n");
-  Serial.print("Vy: ");
-  Serial.println("currentYspeed"\n);
-}
-"""
