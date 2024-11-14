@@ -1,6 +1,6 @@
 import tkinter as tk
-#import serial
-#import time
+import serial
+import time
 
 MAX_POINTS = 10
 
@@ -10,8 +10,8 @@ route_speed = []
 route_loaded = False
 
 # Configure serial port (REPLACE BY THE PROPER PORT (see Device Manager))
-#ser = serial.Serial('COM3', 9600, timeout=1)
-#time.sleep(2)  # Await connection to the Arduino
+ser = serial.Serial('COM4', 9600, timeout=1)
+time.sleep(2)  # Await connection to the Arduino
 
 def write_message(msg):
     global message_box
@@ -23,8 +23,7 @@ def clear_log():
     message_box.delete('1.0', tk.END)
 
 def send_command(command):
-    pass
-    #ser.write((command + '\n').encode())
+    ser.write((command + '\n').encode())
 
 def add_point():
     global route_x, route_y, x_entry, y_entry, speed_entry, route_loaded
@@ -87,11 +86,11 @@ def load_route():
             command_y += " " + str(route_y[i])
             command_s += " " + str(route_speed[i])
         print(f"Command: {command_x}")
-        #send_command(f""{command_x}")
+        send_command(f"{command_x}")
         print(f"Command: {command_y}")
-        #send_command(f""{command_y}")
+        send_command(f"{command_y}")
         print(f"Command: {command_s}")
-        #send_command(f""{command_s}")
+        send_command(f"{command_s}")
         write_message("Route Loaded.\n")
         route_loaded = True
 
@@ -101,17 +100,17 @@ def start_movement():
     else:
         write_message("Movement Started.\n")
         print("Command: START")
-        #send_command(f"START")
+        send_command(f"START")
 
 def stop_movement():
     write_message("Movement Stopped.\n")
     print("Command: STOP")
-    #send_command(f"STOP")
+    send_command(f"STOP")
 
 def reset_position():
     write_message("Resetting Position.\n")
     print("Comando: RESET")
-    #send_command(f"RESET")
+    send_command(f"RESET")
 
 def initialize_gui():
     window = tk.Tk()
@@ -239,4 +238,4 @@ update_status()
 # Rodar a GUI
 window.mainloop()
 # Fechar a porta serial ao fechar a GUI
-#ser.close()
+ser.close()
