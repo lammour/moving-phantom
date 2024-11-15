@@ -29,9 +29,9 @@ void setup() {
   Serial.println("=========================Début=========================");
   
   // Set initial speeds for motors
-  moteurX.setSpeed(5);
-  moteurY1.setSpeed(5);
-  moteurY2.setSpeed(5);
+  moteurX.setSpeed(15);
+  moteurY1.setSpeed(15);
+  moteurY2.setSpeed(15);
 }
 
 void loop() {
@@ -158,8 +158,8 @@ void loop() {
       Serial.println(temps);
 
       // Convert distances to steps for each axis
-      int nbPasX = round((xf - x) * pasX * NbPasTour);
-      int nbPasY = round((yf - y) * pasY * NbPasTour);
+      float nbPasX = round((xf - x) * pasX * NbPasTour);
+      float nbPasY = round((yf - y) * pasY * NbPasTour);
         
       // Print step counts for each axis
       Serial.print("nbPasX : ");
@@ -168,7 +168,7 @@ void loop() {
       Serial.println(nbPasY);
 
       // Perform synchronized movement across both axes
-      int maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
+      float maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
       int incrX = 0;
       int incrY = 0;
 
