@@ -3,6 +3,10 @@ import serial
 import time
 
 MAX_POINTS = 10
+LENGTH_X = 10
+LENGTH_Y = 20
+MIN_SPEED = 0.1
+MAX_SPEED = 2
 
 route_x = []
 route_y = []
@@ -140,19 +144,19 @@ def initialize_gui():
     frame_entries.columnconfigure([0, 1], weight=1)
     frame_entries.rowconfigure([0, 1, 2], weight=1)
 
-    x_label = tk.Label(frame_entries, text="X Position:")
+    x_label = tk.Label(frame_entries, text=f"X Position (cm):\nMin: {-LENGTH_X/2}, Max: {LENGTH_X/2}")
     x_label.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
     x_entry = tk.Entry(frame_entries, width=5)
     x_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
-    y_label = tk.Label(frame_entries, text="Y Position:")
+    y_label = tk.Label(frame_entries, text=f"Y Position (cm):\nMin: {-LENGTH_Y/2}, Max: {LENGTH_Y/2}")
     y_label.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
     y_entry = tk.Entry(frame_entries, width=5)
     y_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
-    speed_label = tk.Label(frame_entries, text="Speed:")
+    speed_label = tk.Label(frame_entries, text=f"Speed (cm/s):\nMin: {MIN_SPEED}, Max: {MAX_SPEED}")
     speed_label.grid(row=2, column=0, padx=5, pady=5, sticky="ew")
 
     speed_entry = tk.Entry(frame_entries, width=5)
@@ -190,16 +194,16 @@ def initialize_gui():
     status_frame = tk.Frame(window, padx=10, pady=10)
     status_frame.grid(row=4, column=0, sticky="nsew")
     
-    status_label = tk.Label(status_frame, text="Status: Static")
-    status_label.grid(row=0, column=0, sticky="ew")
+    #status_label = tk.Label(status_frame, text="Status: Static")
+    #status_label.grid(row=0, column=0, sticky="ew")
 
-    position_label = tk.Label(status_frame, text="Current Position: X: 0, Y: 0")
-    position_label.grid(row=1, column=0, sticky="ew")
+    #position_label = tk.Label(status_frame, text="Current Position: X: 0, Y: 0")
+    #position_label.grid(row=1, column=0, sticky="ew")
 
     warning_label = tk.Label(status_frame, text=f"Warning: The robot's route can have a\nmaximum of {MAX_POINTS} middle points.")
-    warning_label.grid(row=0, column=1, sticky="ew")
+    warning_label.grid(row=0, column=0, sticky="ew")
 
-    return window, x_entry, y_entry, speed_entry, message_box, status_label, position_label
+    return window, x_entry, y_entry, speed_entry, message_box
 
 # Update the robot status based on the feedback information received by the Arduino.
 def update_status():
@@ -232,7 +236,7 @@ def update_status():
         status_label.config(text=f"Status: static")
     window.after(100, update_status)"""
 
-window, x_entry, y_entry, speed_entry, message_box, status_label, position_label = initialize_gui()
+window, x_entry, y_entry, speed_entry, message_box = initialize_gui()
 # Iniciar a atualização do status
 update_status()
 # Rodar a GUI
