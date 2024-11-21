@@ -109,7 +109,7 @@ def stop_movement():
 
 def reset_position():
     write_message("Resetting Position.\n")
-    print("Comando: RESET")
+    print("Command: RESET")
     send_command(f"RESET")
 
 def initialize_gui():
