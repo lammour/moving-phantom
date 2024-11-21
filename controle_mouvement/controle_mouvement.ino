@@ -136,7 +136,7 @@ void loop() {
       Serial.println(distance);
         
       // Calculate time for movement in milliseconds based on speed
-      float temps = distance / speed[k] * 1000;
+      float temps = distance / speed[k] * 1000 * 100; // vitesse en cm/s
       Serial.print("Time (ms): ");
       Serial.println(temps);
 
@@ -161,7 +161,7 @@ void loop() {
       // Perform synchronized movement across both axes
       float maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
       
-      float temps_tour = temps/(maxSteps/NbPasTour); // en temps/tour
+      float temps_tour = temps/(maxSteps/NbPasTour); // en s/tour
       float temps_boucle = (temps_tour + 1.23)/0.99;
       
       
