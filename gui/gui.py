@@ -3,10 +3,13 @@ import serial
 import time
 
 MAX_POINTS = 10
-LENGTH_X = 10
-LENGTH_Y = 20
+MARGE_ERREUR = 0.1 # so the gear doesn't fall off of the steering rack
+LENGTH_X = 19 * (1 - MARGE_ERREUR) # length of the steering rack
+LENGTH_Y = 3.5 * (1 - MARGE_ERREUR) # length of the steering rack
+MAX_X_POSITION_ABS = round(LENGTH_X/2, 1)
+MAX_Y_POSITION_ABS = round(LENGTH_Y/2, 1)
 MIN_SPEED = 0.1
-MAX_SPEED = 2
+MAX_SPEED = 1
 
 route_x = []
 route_y = []
@@ -41,6 +44,10 @@ def add_point():
         write_message(f"Warning: The robot's route can have a\nmaximum of {MAX_POINTS} middle points.\n")
     elif float(speed) <= 0:
         write_message(f"Error: speed of displacement must be strictly positive.\n")
+    elif abs(float(x_coord)) > MAX_X_POSITION_ABS or abs(float(y_coord)) > MAX_Y_POSITION_ABS:
+        write_message(f"Error: please pay attention to the limits of the X and Y coordinates.\n")
+    elif abs(float(speed)) > MAX_SPEED:
+        write_message(f"Error: please pay attention to the limits of the X and Y coordinates.\n")
     else:
         route_x.append(float(x_coord))
         route_y.append(float(y_coord))
@@ -144,13 +151,13 @@ def initialize_gui():
     frame_entries.columnconfigure([0, 1], weight=1)
     frame_entries.rowconfigure([0, 1, 2], weight=1)
 
-    x_label = tk.Label(frame_entries, text=f"X Position (cm):\nMin: {-LENGTH_X/2}, Max: {LENGTH_X/2}")
+    x_label = tk.Label(frame_entries, text=f"X Position (cm):\nMin: {-MAX_X_POSITION_ABS}, Max: {MAX_X_POSITION_ABS}")
     x_label.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
     x_entry = tk.Entry(frame_entries, width=5)
     x_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
-    y_label = tk.Label(frame_entries, text=f"Y Position (cm):\nMin: {-LENGTH_Y/2}, Max: {LENGTH_Y/2}")
+    y_label = tk.Label(frame_entries, text=f"Y Position (cm):\nMin: {-MAX_Y_POSITION_ABS}, Max: {MAX_Y_POSITION_ABS}")
     y_label.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
     y_entry = tk.Entry(frame_entries, width=5)
