@@ -86,36 +86,19 @@ void loop() {
     }
     else if (input == "RESET") {
       // Convert distances to steps for each axis
-      int nbPasX = round((0 - x) * pasX * NbPasTour);
-      int nbPasY = round((0 - y) * pasY * NbPasTour);
-        
-      // Print step counts for each axis
-      Serial.print("nbPasX : ");
-      Serial.println(nbPasX);
-      Serial.print("nbPasY : ");
-      Serial.println(nbPasY);
+      int nbPasX = round((0 - x) / pasX * NbPasTour);
+      int nbPasY = round((0 - y) / pasY * NbPasTour);
+      
+      int directionY = (nbPasY >= 0) ? 1 : -1;
+      nbPasY = abs(nbPasY);
 
-      // Perform synchronized movement across both axes
-      int maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
-      int incrX = 0;
-      int incrY = 0;
-      Serial.println("début RESET");
-
-      for (int i = 1; i <= maxSteps; i++) {
-        // Increment steps for each motor based on maxSteps
-        if (incrX < i * nbPasX / maxSteps) {
-          moteurX.step(1); // Step motor X
-          incrX++;
-        }
-        if (incrY < i * nbPasY / maxSteps) {
-          moteurY1.step(1); // Step motor Y1
-          moteurY2.step(-1); // Step motor Y2 in opposite direction
-          incrY++;
-        }
-        delay(4000 / maxSteps);  // Retour à zéro en 4 secondes
+      // Back to (0,0)
+      moteurX.step(nbPasX);
+      for (int i = 1; i <= nbPasY; i++) {
+          moteurY1.step(directionY); // Step motor Y1
+          moteurY2.step(-directionY); // Step motor Y2 in opposite direction
       }
-      Serial.println("fin RESET");
-
+      
       // Update new coordonates
       x = 0;
       y = 0;
@@ -158,14 +141,22 @@ void loop() {
       Serial.println(temps);
 
       // Convert distances to steps for each axis
-      float nbPasX = round((xf - x) * pasX * NbPasTour);
-      float nbPasY = round((yf - y) * pasY * NbPasTour);
+      int nbPasX = round((xf - x) / pasX * NbPasTour);
+      int nbPasY = round((yf - y) / pasY * NbPasTour);
         
       // Print step counts for each axis
       Serial.print("nbPasX : ");
       Serial.println(nbPasX);
       Serial.print("nbPasY : ");
       Serial.println(nbPasY);
+
+      // Determine directions based on the sign of nbPasX and nbPasY
+      int directionX = (nbPasX >= 0) ? 1 : -1;
+      int directionY = (nbPasY >= 0) ? 1 : -1;
+
+      // Take absolute values for step counting
+      nbPasX = abs(nbPasX);
+      nbPasY = abs(nbPasY);
 
       // Perform synchronized movement across both axes
       float maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
@@ -176,12 +167,12 @@ void loop() {
       for (int i = 1; i <= maxSteps; i++) {
         // Increment steps for each motor based on maxSteps
         if (incrX < i * nbPasX / maxSteps) {
-          moteurX.step(1); // Step motor X
+          moteurX.step(directionX); // Step motor X
           incrX++;
         }
         if (incrY < i * nbPasY / maxSteps) {
-          moteurY1.step(1); // Step motor Y1
-          moteurY2.step(-1); // Step motor Y2 in opposite direction
+          moteurY1.step(directionY); // Step motor Y1
+          moteurY2.step(-directionY); // Step motor Y2 in opposite direction
           incrY++;
         }
         delay(temps / maxSteps);  // Control global speed
