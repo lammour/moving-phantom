@@ -160,6 +160,11 @@ void loop() {
 
       // Perform synchronized movement across both axes
       float maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
+      
+      float temps_tour = temps/(maxSteps/NbPasTour); // en temps/tour
+      float temps_boucle = (temps_tour + 1.23)/0.99;
+      
+      
       int incrX = 0;
       int incrY = 0;
 
@@ -175,7 +180,7 @@ void loop() {
           moteurY2.step(-directionY); // Step motor Y2 in opposite direction
           incrY++;
         }
-        delay(temps / maxSteps);  // Control global speed
+        delay(temps_boucle / maxSteps);  // Control global speed
       }
 
       // Update new coordonates
