@@ -86,8 +86,8 @@ void loop() {
     }
     else if (input == "RESET") {
       // Convert distances to steps for each axis
-      int nbPasX = round((0 - x) / pasX * NbPasTour);
-      int nbPasY = round((0 - y) / pasY * NbPasTour);
+      int nbPasX = round(((0 - x) / pasX) * NbPasTour);
+      int nbPasY = round(((0 - y) / pasY) * NbPasTour);
       
       int directionY = (nbPasY >= 0) ? 1 : -1;
       nbPasY = abs(nbPasY);
@@ -96,7 +96,7 @@ void loop() {
       moteurX.step(nbPasX);
       for (int i = 1; i <= nbPasY; i++) {
           moteurY1.step(directionY); // Step motor Y1
-          moteurY2.step(-directionY); // Step motor Y2 in opposite direction
+          moteurY2.step(directionY); // Step motor Y2 in opposite direction
       }
       
       // Update new coordonates
@@ -141,8 +141,8 @@ void loop() {
       Serial.println(temps);
 
       // Convert distances to steps for each axis
-      int nbPasX = round((xf - x) / pasX * NbPasTour);
-      int nbPasY = round((yf - y) / pasY * NbPasTour);
+      float nbPasX = round(((xf - x) / pasX) * NbPasTour);
+      float nbPasY = round(((yf - y) / pasY) * NbPasTour);
         
       // Print step counts for each axis
       Serial.print("nbPasX : ");
@@ -172,7 +172,7 @@ void loop() {
         }
         if (incrY < i * nbPasY / maxSteps) {
           moteurY1.step(directionY); // Step motor Y1
-          moteurY2.step(-directionY); // Step motor Y2 in opposite direction
+          moteurY2.step(directionY); // Step motor Y2 in opposite direction
           incrY++;
         }
         delay(temps / maxSteps);  // Control global speed
