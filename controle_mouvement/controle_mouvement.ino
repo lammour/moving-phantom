@@ -6,7 +6,7 @@ int y = 0;
 
 // 32 steps per rotation, with a 1/64 reduction, so 32*64 steps per rotation.
 int NbPasTour = 2048;
-float pasX = 11.94;
+float pasX = 9.42;
 float pasY = 4.08;
 int nb_points = 0;
 
