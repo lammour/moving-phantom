@@ -29,9 +29,9 @@ void setup() {
   Serial.println("=========================Début=========================");
   
   // Set initial speeds for motors
-  moteurX.setSpeed(15);
-  moteurY1.setSpeed(15);
-  moteurY2.setSpeed(15);
+  moteurX.setSpeed(16);
+  moteurY1.setSpeed(16);
+  moteurY2.setSpeed(16);
 }
 
 void loop() {
@@ -91,10 +91,6 @@ void loop() {
       
       int directionY = (nbPasY >= 0) ? 1 : -1;
       nbPasY = abs(nbPasY);
-
-      moteurX.setSpeed(10);
-      moteurY1.setSpeed(10);
-      moteurY2.setSpeed(10);
 
       // Back to (0,0)
       moteurX.step(nbPasX);
@@ -169,20 +165,14 @@ void loop() {
       Serial.print("temps : ");
       Serial.println(temps);
 
-      // Calculate setSpeed for movement in rotation per minute
-      float setSpeed = (nbPasX + nbPasY)*60/(NbPasTour * temps);
-      moteurX.setSpeed(setSpeed);
-      moteurY1.setSpeed(setSpeed);
-      moteurY2.setSpeed(setSpeed);
-      Serial.print("setSpeed : ");
-      Serial.println(setSpeed);
-
       // Perform synchronized movement across both axes
       float maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
       int incrX = 0;
       int incrY = 0;
 
-      unsigned long startTime, endTime;
+      float stepTempo = temps/maxSteps;
+
+      unsigned long startTime, endTime, nowTime;
       startTime = millis();
 
       Serial.println("début");
@@ -197,6 +187,8 @@ void loop() {
           moteurY2.step(directionY); // Step motor Y2 in opposite direction
           incrY++;
         }
+        nowTime = millis();
+        delay(i*stepTempo-nowTime);
       }
       endTime = millis();
       Serial.print("Durée d'exécution : ");
