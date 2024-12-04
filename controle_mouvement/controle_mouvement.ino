@@ -148,9 +148,6 @@ void loop() {
       nbPasX = abs(nbPasX);
       nbPasY = abs(nbPasY);
 
-      Serial.print("SOMMME PAS : ");
-      Serial.println(nbPasX + nbPasY);
-
       // Calculate the distance between start and end points
       float distance = sqrt(pow((xf - x), 2) + pow((yf - y), 2));
         
@@ -170,7 +167,9 @@ void loop() {
       int incrX = 0;
       int incrY = 0;
 
-      float stepTempo = temps/maxSteps;
+      float stepTempo = 1000*temps/maxSteps; // en ms
+      Serial.print("stepTempo : ");
+      Serial.println(stepTempo);
 
       unsigned long startTime, endTime, nowTime;
       startTime = millis();
@@ -188,12 +187,14 @@ void loop() {
           incrY++;
         }
         nowTime = millis();
-        delay(i*stepTempo-nowTime);
+        Serial.print("Temps de delay : ");
+        Serial.print(i*stepTempo-(nowTime-startTime));
+        delay(i*stepTempo-(nowTime-startTime));
       }
       endTime = millis();
       Serial.print("Durée d'exécution : ");
       Serial.print(endTime - startTime);
-      Serial.println(" microsecondes");
+      Serial.println(" millisecondes");
 
       // Update new coordonates
       x = xf;
