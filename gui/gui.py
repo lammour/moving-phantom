@@ -3,20 +3,20 @@ import serial
 import time
 
 MAX_POINTS = 10
-MARGE_ERREUR = 0.1 # so the gear doesn't fall off of the steering rack
-LENGTH_X = 19 * (1 - MARGE_ERREUR) # length of the steering rack
-LENGTH_Y = 3.5 * (1 - MARGE_ERREUR) # length of the steering rack
-MAX_X_POSITION_ABS = round(LENGTH_X/2, 1)
-MAX_Y_POSITION_ABS = round(LENGTH_Y/2, 1)
-MIN_SPEED = 0.1
-MAX_SPEED = 1
+MARGE_ERREUR = 0.1 # prevents the gear from falling off of the steering rack
+LENGTH_X = 19  # length of the X axis steering rack in cm
+LENGTH_Y = 3.5 # length of the Y axis steering rack in cm
+MAX_X_POSITION_ABS = round(LENGTH_X*(1 - MARGE_ERREUR)/2, 1)
+MAX_Y_POSITION_ABS = round(LENGTH_Y*(1 - MARGE_ERREUR)/2, 1)
+MIN_SPEED = 0.1 # minimum movement speed in cm/s
+MAX_SPEED = 1 # maximum movement speed in cm/s
 
 route_x = []
 route_y = []
 route_speed = []
 route_loaded = False
 
-# Configure serial port (REPLACE BY THE PROPER PORT (see Device Manager))
+# Configure serial port - REPLACE 'COM4' BY YOUR PROPER PORT (see Device Manager)
 ser = serial.Serial('COM4', 9600, timeout=1)
 time.sleep(2)  # Await connection to the Arduino
 
@@ -96,11 +96,8 @@ def load_route():
             command_x += " " + str(route_x[i])
             command_y += " " + str(route_y[i])
             command_s += " " + str(route_speed[i])
-        print(f"Command: {command_x}")
         send_command(f"{command_x}")
-        print(f"Command: {command_y}")
         send_command(f"{command_y}")
-        print(f"Command: {command_s}")
         send_command(f"{command_s}")
         write_message("Route Loaded.\n")
         route_loaded = True
@@ -110,28 +107,24 @@ def start_movement():
         write_message("Error: to start movement, first you must specify a route providing the coordinates and pressing \"Add\".\n")
     else:
         write_message("Movement Started.\n")
-        print("Command: START")
         send_command(f"START")
 
 def stop_movement():
     write_message("Movement Stopped.\n")
-    print("Command: STOP")
     send_command(f"STOP")
 
 def reset_position():
     write_message("Resetting Position.\n")
-    print("Command: RESET")
     send_command(f"RESET")
 
 def initialize_gui():
+    #  Create resizable window
     window = tk.Tk()
     window.title("Movement Control")
-    
-    # Resizable window
     window.rowconfigure([0, 1, 2, 3, 4, 5], weight=1)
     window.columnconfigure(0, weight=1)
 
-    # Control Frame for Start/Stop/Reset Buttons
+    # Start/Stop/Reset Buttons Frame
     frame_controls = tk.Frame(window, padx=10, pady=10)
     frame_controls.grid(row=0, column=0, sticky="nsew")
     frame_controls.columnconfigure([0, 1, 2], weight=1)
@@ -186,7 +179,7 @@ def initialize_gui():
     load_button = tk.Button(frame_buttons, text="Load Route", command=load_route)
     load_button.grid(row=1, column=1, padx=5, pady=10, sticky="nsew")
 
-    # Message Box Frame for Warnings
+    # Message Box Frame
     message_frame = tk.Frame(window, padx=10, pady=10)
     message_frame.grid(row=3, column=0, sticky="nsew")
     message_frame.columnconfigure(0, weight=1)
@@ -197,56 +190,15 @@ def initialize_gui():
     clear_log_button = tk.Button(message_frame, text="Clear Log", command=clear_log)
     clear_log_button.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
 
-    # Position Status Frame
-    status_frame = tk.Frame(window, padx=10, pady=10)
-    status_frame.grid(row=4, column=0, sticky="nsew")
-    
-    #status_label = tk.Label(status_frame, text="Status: Static")
-    #status_label.grid(row=0, column=0, sticky="ew")
+    # Warning Frame
+    warning_frame = tk.Frame(window, padx=10, pady=10)
+    warning_frame.grid(row=4, column=0, sticky="nsew")
 
-    #position_label = tk.Label(status_frame, text="Current Position: X: 0, Y: 0")
-    #position_label.grid(row=1, column=0, sticky="ew")
-
-    warning_label = tk.Label(status_frame, text=f"Warning: The robot's route can have a\nmaximum of {MAX_POINTS} middle points.")
+    warning_label = tk.Label(warning_frame, text=f"Warning: The robot's route can have a\nmaximum of {MAX_POINTS} middle points.")
     warning_label.grid(row=0, column=0, sticky="ew")
 
     return window, x_entry, y_entry, speed_entry, message_box
 
-# Update the robot status based on the feedback information received by the Arduino.
-def update_status():
-    pass
-    """if ser.in_waiting > 0:
-    lines = ser.readlines()
-    # At least 4 lines received
-    if len(lines) >= 4:
-        try:
-            # Decodes and strips unuseful chars
-            line_x = lines[0].decode('utf-8').strip()
-            line_y = lines[1].decode('utf-8').strip()
-            line_vx = lines[2].decode('utf-8').strip()
-            line_vy = lines[3].decode('utf-8').strip()
-
-            # Extracts values
-            current_x = int(line_x.split(": ")[1])
-            current_y = int(line_y.split(": ")[1])
-            current_vx = int(line_vx.split(": ")[1])
-            current_vy = int(line_vy.split(": ")[1])
-
-            # Updates GUI with new info
-            position_label.config(text=f"Current Position: X: {current_x}, Y: {current_y}")
-            status_label.config(text=f"Speeds - Vx: {current_vx}, Vy: {current_vy}")
-        except (IndexError, ValueError) as e:
-            print("Error reading serial data:", e)
-    if running:
-        status_label.config(text=f"Status: moving")
-    else:
-        status_label.config(text=f"Status: static")
-    window.after(100, update_status)"""
-
 window, x_entry, y_entry, speed_entry, message_box = initialize_gui()
-# Iniciar a atualização do status
-update_status()
-# Rodar a GUI
 window.mainloop()
-# Fechar a porta serial ao fechar a GUI
 ser.close()
