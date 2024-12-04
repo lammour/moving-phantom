@@ -9,7 +9,7 @@ LENGTH_Y = 2.2 * (1 - MARGE_ERREUR) # length of the steering rack
 MAX_X_POSITION_ABS = round(LENGTH_X/2, 1)
 MAX_Y_POSITION_ABS = round(LENGTH_Y/2, 1)
 MIN_SPEED = 0.1
-MAX_SPEED = 2
+MAX_SPEED = 1.5
 
 route_x = []
 route_y = []

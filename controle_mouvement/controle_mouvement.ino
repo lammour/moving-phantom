@@ -171,30 +171,36 @@ void loop() {
       Serial.print("stepTempo : ");
       Serial.println(stepTempo);
 
-      unsigned long startTime, endTime, nowTime;
+      float avanceX = nbPasX / maxSteps;
+      float avanceY = nbPasY / maxSteps;
+
+      unsigned long startTime, endTime;
       startTime = millis();
 
-      Serial.println("début");
+      float nextStepTime = millis(); // Temps cible du prochain pas
       for (int i = 1; i <= maxSteps; i++) {
-        // Increment steps for each motor based on maxSteps
-        if (incrX < i * nbPasX / maxSteps) {
-          moteurX.step(directionX); // Step motor X
-          incrX++;
-        }
-        if (incrY < i * nbPasY / maxSteps) {
-          moteurY1.step(directionY); // Step motor Y1
-          moteurY2.step(directionY); // Step motor Y2 in opposite direction
-          incrY++;
-        }
-        nowTime = millis();
-        Serial.print("Temps de delay : ");
-        Serial.print(i*stepTempo-(nowTime-startTime));
-        delay(i*stepTempo-(nowTime-startTime));
+          while (millis() < nextStepTime) {
+              // Attente active sans bloquer totalement
+              // Vous pouvez insérer ici d'autres tâches ou surveiller des événements
+          }
+          if (incrX < i * avanceX) {
+              moteurX.step(directionX); // Step motor X
+              incrX++;
+          }
+          if (incrY < i * avanceY) {
+              moteurY1.step(directionY); // Step motor Y1
+              moteurY2.step(directionY); // Step motor Y2
+              incrY++;
+          }
+          nextStepTime += stepTempo; // Planifier le prochain pas
       }
+
       endTime = millis();
       Serial.print("Durée d'exécution : ");
       Serial.print(endTime - startTime);
       Serial.println(" millisecondes");
+      Serial.print("nextStepTime - startTime : ");
+      Serial.println(nextStepTime-startTime);
 
       // Update new coordonates
       x = xf;
