@@ -16,21 +16,21 @@ route_y = []
 route_speed = []
 route_loaded = False
 
-# Configure serial port - REPLACE 'COM4' BY YOUR PROPER PORT (see Device Manager)
-ser = serial.Serial('COM4', 9600, timeout=1)
-time.sleep(2)  # Await connection to the Arduino
+# Auxiliary Functions
+
+def send_command(command):
+    ser.write((command + '\n').encode())
 
 def write_message(msg):
     global message_box
     message_box.insert(tk.END, msg)
     message_box.see(tk.END)
 
+# Button Activated Functions
+
 def clear_log():
     global message_box
     message_box.delete('1.0', tk.END)
-
-def send_command(command):
-    ser.write((command + '\n').encode())
 
 def add_point():
     global route_x, route_y, x_entry, y_entry, speed_entry, route_loaded
@@ -117,6 +117,7 @@ def reset_position():
     write_message("Resetting Position.\n")
     send_command(f"RESET")
 
+# Initialization Function
 def initialize_gui():
     #  Create resizable window
     window = tk.Tk()
@@ -124,59 +125,59 @@ def initialize_gui():
     window.rowconfigure([0, 1, 2, 3, 4, 5], weight=1)
     window.columnconfigure(0, weight=1)
 
-    # Start/Stop/Reset Buttons Frame
-    frame_controls = tk.Frame(window, padx=10, pady=10)
-    frame_controls.grid(row=0, column=0, sticky="nsew")
-    frame_controls.columnconfigure([0, 1, 2], weight=1)
+    # Movement Control Buttons Frame
+    control_frame = tk.Frame(window, padx=10, pady=10)
+    control_frame.grid(row=0, column=0, sticky="nsew")
+    control_frame.columnconfigure([0, 1, 2], weight=1)
 
-    start_button = tk.Button(frame_controls, text="Start", command=start_movement)
+    start_button = tk.Button(control_frame, text="Start", command=start_movement)
     start_button.grid(row=0, column=0, padx=5, sticky="nsew")
 
-    stop_button = tk.Button(frame_controls, text="Stop", command=stop_movement)
+    stop_button = tk.Button(control_frame, text="Stop", command=stop_movement)
     stop_button.grid(row=0, column=1, padx=5, sticky="nsew")
 
-    reset_button = tk.Button(frame_controls, text="Reset", command=reset_position)
+    reset_button = tk.Button(control_frame, text="Reset", command=reset_position)
     reset_button.grid(row=0, column=2, padx=5, sticky="nsew")
 
-    # Speed, X and Y Entry Frame
-    frame_entries = tk.Frame(window, padx=10, pady=10)
-    frame_entries.grid(row=1, column=0, sticky="nsew")
-    frame_entries.columnconfigure([0, 1], weight=1)
-    frame_entries.rowconfigure([0, 1, 2], weight=1)
+    # Entry Frame
+    entry_frame = tk.Frame(window, padx=10, pady=10)
+    entry_frame.grid(row=1, column=0, sticky="nsew")
+    entry_frame.columnconfigure([0, 1], weight=1)
+    entry_frame.rowconfigure([0, 1, 2], weight=1)
 
-    x_label = tk.Label(frame_entries, text=f"X Position (cm):\nMin: {-MAX_X_POSITION_ABS}, Max: {MAX_X_POSITION_ABS}")
+    x_label = tk.Label(entry_frame, text=f"X Position (cm):\nMin: {-MAX_X_POSITION_ABS}, Max: {MAX_X_POSITION_ABS}")
     x_label.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
-    x_entry = tk.Entry(frame_entries, width=5)
+    x_entry = tk.Entry(entry_frame, width=5)
     x_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
-    y_label = tk.Label(frame_entries, text=f"Y Position (cm):\nMin: {-MAX_Y_POSITION_ABS}, Max: {MAX_Y_POSITION_ABS}")
+    y_label = tk.Label(entry_frame, text=f"Y Position (cm):\nMin: {-MAX_Y_POSITION_ABS}, Max: {MAX_Y_POSITION_ABS}")
     y_label.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-    y_entry = tk.Entry(frame_entries, width=5)
+    y_entry = tk.Entry(entry_frame, width=5)
     y_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
 
-    speed_label = tk.Label(frame_entries, text=f"Speed (cm/s):\nMin: {MIN_SPEED}, Max: {MAX_SPEED}")
+    speed_label = tk.Label(entry_frame, text=f"Speed (cm/s):\nMin: {MIN_SPEED}, Max: {MAX_SPEED}")
     speed_label.grid(row=2, column=0, padx=5, pady=5, sticky="ew")
 
-    speed_entry = tk.Entry(frame_entries, width=5)
+    speed_entry = tk.Entry(entry_frame, width=5)
     speed_entry.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
 
-    # Add/Load/Clear Buttons Frame
-    frame_buttons = tk.Frame(window, padx=10, pady=10)
-    frame_buttons.grid(row=2, column=0, sticky="nsew")
-    frame_buttons.columnconfigure([0, 1, 2], weight=1)
+    # Route Management Buttons Frame
+    route_frame = tk.Frame(window, padx=10, pady=10)
+    route_frame.grid(row=2, column=0, sticky="nsew")
+    route_frame.columnconfigure([0, 1, 2], weight=1)
 
-    add_button = tk.Button(frame_buttons, text="Add Point", command=add_point)
+    add_button = tk.Button(route_frame, text="Add Point", command=add_point)
     add_button.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
 
-    clear_button = tk.Button(frame_buttons, text="Clear Route", command=clear_route)
+    clear_button = tk.Button(route_frame, text="Clear Route", command=clear_route)
     clear_button.grid(row=0, column=1, padx=5, pady=10, sticky="nsew")
     
-    show_button = tk.Button(frame_buttons, text="Show Route", command=show_route)
+    show_button = tk.Button(route_frame, text="Show Route", command=show_route)
     show_button.grid(row=1, column=0, padx=5, pady=10, sticky="nsew")
 
-    load_button = tk.Button(frame_buttons, text="Load Route", command=load_route)
+    load_button = tk.Button(route_frame, text="Load Route", command=load_route)
     load_button.grid(row=1, column=1, padx=5, pady=10, sticky="nsew")
 
     # Message Box Frame
@@ -199,6 +200,9 @@ def initialize_gui():
 
     return window, x_entry, y_entry, speed_entry, message_box
 
+# Configure serial port - REPLACE 'COM4' BY YOUR PROPER PORT (see Device Manager)
+ser = serial.Serial('COM4', 9600, timeout=1)
+time.sleep(2)  # Await connection to the Arduino
 window, x_entry, y_entry, speed_entry, message_box = initialize_gui()
 window.mainloop()
 ser.close()
