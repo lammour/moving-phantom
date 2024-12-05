@@ -7,7 +7,7 @@ float y = 0;
 // 32 steps per rotation, with a 1/64 reduction, so 32*64 steps per rotation.
 int NbPasTour = 2048;
 float pasX = 9.42;
-float pasY = 3.768;
+float pasY = 3.611;
 int nb_points = 0;
 
 // Stepper motors (assuming 200 steps per rotation) connected to pins 6, 9, 10, and 11.
