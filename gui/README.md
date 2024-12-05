@@ -28,7 +28,7 @@ The [Python file](gui.py) in this directory provides a graphical user interface 
     
 ## Graphical Interface Overview
 
-![GUI Overview](assets/gui_overview.png)
+![GUI Overview](../assets/gui_overview.png)
 
 1. **Start/Stop/Reset Buttons**:
 - Control the robot's movement.
@@ -52,7 +52,7 @@ The [Python file](gui.py) in this directory provides a graphical user interface 
 
 ## Code Overview
 
-![GUI Code Overview](assets/gui_code_overview.jpg)
+![GUI Code Overview](../assets/gui_code_overview.jpg)
 
 ### Global Variables
 - `route_x`, `route_y`, `route_speed`: Store the coordinates and speeds of the route.
@@ -76,11 +76,6 @@ The [Python file](gui.py) in this directory provides a graphical user interface 
 
 4. **Serial Communication**:
 - `send_command(command)`: Sends a command to the Arduino via Serial.
-
-## Robot Hardware Overview
-
-![Robot Overview](assets/robot_overview.png)
-The robot is composed of 3 stepper motors: 2 for the Y-axis movement, attached to the wooden support, and 1 for the X-axis movement, attached to the carbon plate. The stepper motors are controlled by an Arduino MEGA which interprets the user commands received from the GUI.
 
 ## Usage
 General system workflow:
