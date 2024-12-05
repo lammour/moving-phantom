@@ -9,6 +9,5 @@ The robot is placed on top of a PMMA block, which simulated human tissue in X-Ra
 ![Testing robot](assets/phantom_test.jpg)
 
 ## Hardware Overview
-
-![Robot Overview](assets/robot_overview.png)
 The robot is composed of two pieces of wooden suport. 2 stepper motors are placed in opposite sides of the phantom, controlling the Y-axis movement, and the other one is placed on top, attached to the carbon plate and controlling the X-axis movement. The stepper motors are orchestrated by an Arduino MEGA which interprets the user commands received from the GUI.
+![Robot Overview](assets/robot_overview.png)
