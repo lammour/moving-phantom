@@ -1,13 +1,13 @@
 #include <Stepper.h>
 
 bool etat = 0; // Initial state is stopped
-int x = 0;
-int y = 0;
+float x = 0;
+float y = 0;
 
 // 32 steps per rotation, with a 1/64 reduction, so 32*64 steps per rotation.
 int NbPasTour = 2048;
-float pasX = 11.94;
-float pasY = 4.08;
+float pasX = 9.42;
+float pasY = 3.611;
 int nb_points = 0;
 
 // Stepper motors (assuming 200 steps per rotation) connected to pins 6, 9, 10, and 11.
@@ -20,18 +20,18 @@ Stepper moteurY1(NbPasTour, 7, 9, 8, 6);
 Stepper moteurY2(NbPasTour, 11, 13, 12, 10);
 
 // Pointer declarations for dynamic arrays
-int* Xcoord = NULL;   // Pointer for X coordinates
-int* Ycoord = NULL;   // Pointer for Y coordinates
-int* speed = NULL;    // Pointer for speed values
+float* Xcoord = NULL;   // Pointer for X coordinates
+float* Ycoord = NULL;   // Pointer for Y coordinates
+float* speed = NULL;    // Pointer for speed values
 
 void setup() {
   Serial.begin(9600); // Set up serial communication at 9600 baud rate
   Serial.println("=========================Début=========================");
   
   // Set initial speeds for motors
-  moteurX.setSpeed(15);
-  moteurY1.setSpeed(15);
-  moteurY2.setSpeed(15);
+  moteurX.setSpeed(16);
+  moteurY1.setSpeed(16);
+  moteurY2.setSpeed(16);
 }
 
 void loop() {
@@ -53,7 +53,7 @@ void loop() {
       nb_points = compterValeurs(valeurs);
       
       // Dynamically allocate an array for coordinates based on the number of values
-      int* temp_values = new int[nb_points];
+      float* temp_values = new float[nb_points];
       
       // Extract integer values from the string
       extraireValeurs(valeurs, temp_values, nb_points);
@@ -86,8 +86,8 @@ void loop() {
     }
     else if (input == "RESET") {
       // Convert distances to steps for each axis
-      int nbPasX = round((0 - x) / pasX * NbPasTour);
-      int nbPasY = round((0 - y) / pasY * NbPasTour);
+      int nbPasX = round(((0 - x) / pasX) * NbPasTour);
+      int nbPasY = round(((0 - y) / pasY) * NbPasTour);
       
       int directionY = (nbPasY >= 0) ? 1 : -1;
       nbPasY = abs(nbPasY);
@@ -96,7 +96,7 @@ void loop() {
       moteurX.step(nbPasX);
       for (int i = 1; i <= nbPasY; i++) {
           moteurY1.step(directionY); // Step motor Y1
-          moteurY2.step(-directionY); // Step motor Y2 in opposite direction
+          moteurY2.step(directionY); // Step motor Y2 in opposite direction
       }
       
       // Update new coordonates
@@ -130,19 +130,9 @@ void loop() {
       Serial.print(yf);
       Serial.println(")");
 
-      // Calculate the distance between start and end points
-      float distance = sqrt(pow((xf - x), 2) + pow((yf - y), 2));
-      Serial.print("Distance: ");
-      Serial.println(distance);
-        
-      // Calculate time for movement in milliseconds based on speed
-      float temps = distance / speed[k] * 1000 * 100; // vitesse en cm/s
-      Serial.print("Time (ms): ");
-      Serial.println(temps);
-
       // Convert distances to steps for each axis
-      int nbPasX = round((xf - x) / pasX * NbPasTour);
-      int nbPasY = round((yf - y) / pasY * NbPasTour);
+      float nbPasX = round(((xf - x) / pasX) * NbPasTour);
+      float nbPasY = round(((yf - y) / pasY) * NbPasTour);
         
       // Print step counts for each axis
       Serial.print("nbPasX : ");
@@ -158,6 +148,20 @@ void loop() {
       nbPasX = abs(nbPasX);
       nbPasY = abs(nbPasY);
 
+      // Calculate the distance between start and end points
+      float distance = sqrt(pow((xf - x), 2) + pow((yf - y), 2));
+        
+      // Calculate time for movement in seconds based on speed
+      float temps = distance / speed[k];
+
+      Serial.print("speed[k] : ");
+      Serial.println(speed[k]);
+
+      Serial.print("distance : ");
+      Serial.println(distance);
+      Serial.print("temps : ");
+      Serial.println(temps);
+
       // Perform synchronized movement across both axes
       float maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
       
@@ -168,20 +172,40 @@ void loop() {
       int incrX = 0;
       int incrY = 0;
 
-      Serial.println("début");
+      float stepTempo = 1000*temps/maxSteps; // en ms
+      Serial.print("stepTempo : ");
+      Serial.println(stepTempo);
+
+      float avanceX = nbPasX / maxSteps;
+      float avanceY = nbPasY / maxSteps;
+
+      unsigned long startTime, endTime;
+      startTime = millis();
+
+      float nextStepTime = millis(); // Temps cible du prochain pas
       for (int i = 1; i <= maxSteps; i++) {
-        // Increment steps for each motor based on maxSteps
-        if (incrX < i * nbPasX / maxSteps) {
-          moteurX.step(directionX); // Step motor X
-          incrX++;
-        }
-        if (incrY < i * nbPasY / maxSteps) {
-          moteurY1.step(directionY); // Step motor Y1
-          moteurY2.step(-directionY); // Step motor Y2 in opposite direction
-          incrY++;
-        }
-        delay(temps_boucle / maxSteps);  // Control global speed
+          while (millis() < nextStepTime) {
+              // Attente active sans bloquer totalement
+              // Vous pouvez insérer ici d'autres tâches ou surveiller des événements
+          }
+          if (incrX < i * avanceX) {
+              moteurX.step(directionX); // Step motor X
+              incrX++;
+          }
+          if (incrY < i * avanceY) {
+              moteurY1.step(directionY); // Step motor Y1
+              moteurY2.step(directionY); // Step motor Y2
+              incrY++;
+          }
+          nextStepTime += stepTempo; // Planifier le prochain pas
       }
+
+      endTime = millis();
+      Serial.print("Durée d'exécution : ");
+      Serial.print(endTime - startTime);
+      Serial.println(" millisecondes");
+      Serial.print("nextStepTime - startTime : ");
+      Serial.println(nextStepTime-startTime);
 
       // Update new coordonates
       x = xf;
@@ -202,8 +226,8 @@ int compterValeurs(String valeurs) {
   return count;
 }
 
-// Extracts values from a space-separated string into an integer array
-void extraireValeurs(String valeurs, int* tableau, int taille) {
+// Extracts values from a space-separated string into a float array
+void extraireValeurs(String valeurs, float* tableau, int taille) {
   char buffer[valeurs.length() + 1];
   valeurs.toCharArray(buffer, valeurs.length() + 1);
 
@@ -212,7 +236,7 @@ void extraireValeurs(String valeurs, int* tableau, int taille) {
   int index = 0;
 
   while (token != NULL && index < taille) {
-    tableau[index] = atoi(token);  // Convert to integer and store in array
+    tableau[index] = atof(token);  // Convert to float and store in array
     token = strtok(NULL, " ");
     index++;
   }

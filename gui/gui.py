@@ -5,11 +5,11 @@ import time
 MAX_POINTS = 10
 MARGE_ERREUR = 0.1 # prevents the gear from falling off of the steering rack
 LENGTH_X = 19  # length of the X axis steering rack in cm
-LENGTH_Y = 3.5 # length of the Y axis steering rack in cm
+LENGTH_Y = 2.2 # length of the Y axis steering rack in cm
 MAX_X_POSITION_ABS = round(LENGTH_X*(1 - MARGE_ERREUR)/2, 1)
 MAX_Y_POSITION_ABS = round(LENGTH_Y*(1 - MARGE_ERREUR)/2, 1)
 MIN_SPEED = 0.1 # minimum movement speed in cm/s
-MAX_SPEED = 1 # maximum movement speed in cm/s
+MAX_SPEED = 1.5 # maximum movement speed in cm/s
 
 route_x = []
 route_y = []
