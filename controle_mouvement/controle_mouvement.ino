@@ -1,243 +1,159 @@
 #include <Stepper.h>
 
-bool etat = 0; // Initial state is stopped
+// Variable indiquant l'état (0 : arrêt, 1 : mouvement)
+bool etat = 0; 
+
+// Coordonnées actuelles
 float x = 0;
 float y = 0;
 
-// 32 steps per rotation, with a 1/64 reduction, so 32*64 steps per rotation.
-int NbPasTour = 2048;
-float pasX = 9.42;
-float pasY = 3.611;
-int nb_points = 0;
+// Paramètres des moteurs pas à pas
+const int NbPasTour = 2048; // Nombre de pas par tour complet (après réduction)
+const float pasX = 9.42;    // Distance en mm par pas pour l'axe X
+const float pasY = 4.042;   // Distance en mm par pas pour l'axe Y
 
-// Stepper motors (assuming 200 steps per rotation) connected to pins 6, 9, 10, and 11.
-// Stepper moteurX(NbPasTour, 9, 11, 10, 6);
-// Stepper moteurY1(NbPasTour, 9, 11, 10, 6);
-// Stepper moteurY2(NbPasTour, 9, 11, 10, 6);
-
+// Déclarations des moteurs pas à pas
 Stepper moteurX(NbPasTour, 3, 5, 4, 2);
 Stepper moteurY1(NbPasTour, 7, 9, 8, 6);
 Stepper moteurY2(NbPasTour, 11, 13, 12, 10);
 
-// Pointer declarations for dynamic arrays
-float* Xcoord = NULL;   // Pointer for X coordinates
-float* Ycoord = NULL;   // Pointer for Y coordinates
-float* speed = NULL;    // Pointer for speed values
+// Pointeurs pour les tableaux dynamiques
+float* Xcoord = NULL;   // Coordonnées en X
+float* Ycoord = NULL;   // Coordonnées en Y
+float* speed = NULL;    // Vitesse à chaque point
+int nb_points = 0;      // Nombre de points du chemin
 
+// Initialisation
 void setup() {
-  Serial.begin(9600); // Set up serial communication at 9600 baud rate
-  Serial.println("=========================Début=========================");
-  
-  // Set initial speeds for motors
-  moteurX.setSpeed(16);
-  moteurY1.setSpeed(16);
-  moteurY2.setSpeed(16);
+    Serial.begin(9600); // Configuration de la communication série
+
+    // Configuration des vitesses des moteurs
+    moteurX.setSpeed(16);
+    moteurY1.setSpeed(16);
+    moteurY2.setSpeed(16);
 }
 
+// Boucle principale
 void loop() {
-  if (Serial.available() > 0) { // Check if data is available on the serial port
-    String input = Serial.readStringUntil('\n'); // Read input until newline
+    if (Serial.available() > 0) { // Si des données sont disponibles sur le port série
+        String input = Serial.readStringUntil('\n'); // Lecture des données
+        input.trim(); // Suppression des espaces inutiles
 
-    input.trim();  // Trim whitespace from input
-    
-    // Check if the command starts with "ROUTE"
-    if (input.startsWith("ROUTE")) {
-      Serial.println("ROUTE command detected.");
-      etat = 0; // changement en cours, on arrête le mouvement
-      
-      // Split the input string
-      char axe = input.charAt(6);  // Character after "ROUTE " is "X", "Y" or "S"
-      String valeurs = input.substring(8);  // Capture everything after "ROUTE X/Y/S"
-      
-      // Count the number of values in the string
-      nb_points = compterValeurs(valeurs);
-      
-      // Dynamically allocate an array for coordinates based on the number of values
-      float* temp_values = new float[nb_points];
-      
-      // Extract integer values from the string
-      extraireValeurs(valeurs, temp_values, nb_points);
-      
-      // Store values in the correct array based on "X" or "Y"
-      if (axe == 'X') {
-        Serial.println("Filling X coordinates.");
-        // Release old array and replace it with the new one
-        if (Xcoord != NULL) { delete[] Xcoord; }
-        Xcoord = temp_values;
-      }
-      else if (axe == 'Y') {
-        Serial.println("Filling Y coordinates.");
-        // Release old array and replace it with the new one
-        if (Ycoord != NULL) { delete[] Ycoord; }
-        Ycoord = temp_values;
-      }
-      else if (axe == 'S') {
-        Serial.println("Filling speed values.");
-        // Release old array and replace it with the new one
-        if (speed != NULL) { delete[] speed; }
-        speed = temp_values;
-      }
-    }
-    else if (input == "START") {
-      etat = 1;
-    }
-    else if (input == "STOP") {
-      etat = 0;
-    }
-    else if (input == "RESET") {
-      // Convert distances to steps for each axis
-      int nbPasX = round(((0 - x) / pasX) * NbPasTour);
-      int nbPasY = round(((0 - y) / pasY) * NbPasTour);
-      
-      int directionY = (nbPasY >= 0) ? 1 : -1;
-      nbPasY = abs(nbPasY);
+        // Traitement des commandes reçues
+        if (input.startsWith("ROUTE")) {
+            etat = 0; // Arrêt du mouvement pendant le traitement
+            char axe = input.charAt(6); // Identification de l'axe (X, Y ou S)
+            String valeurs = input.substring(8); // Extraction des valeurs
 
-      // Back to (0,0)
-      moteurX.step(nbPasX);
-      for (int i = 1; i <= nbPasY; i++) {
-          moteurY1.step(directionY); // Step motor Y1
-          moteurY2.step(directionY); // Step motor Y2 in opposite direction
-      }
-      
-      // Update new coordonates
-      x = 0;
-      y = 0;
+            nb_points = compterValeurs(valeurs); // Calcul du nombre de points
+            float* temp_values = new float[nb_points]; // Allocation dynamique du tableau
+            extraireValeurs(valeurs, temp_values, nb_points); // Extraction des valeurs
+
+            // Mise à jour des coordonnées ou vitesses en fonction de l'axe
+            if (axe == 'X') {
+                if (Xcoord != NULL) delete[] Xcoord;
+                Xcoord = temp_values;
+            } else if (axe == 'Y') {
+                if (Ycoord != NULL) delete[] Ycoord;
+                Ycoord = temp_values;
+            } else if (axe == 'S') {
+                if (speed != NULL) delete[] speed;
+                speed = temp_values;
+            }
+        } else if (input == "START") {
+            etat = 1; // Démarrage du mouvement
+        } else if (input == "STOP") {
+            etat = 0; // Arrêt du mouvement
+        } else if (input == "RESET") {
+            resetPosition(); // Réinitialisation à la position (0, 0)
+        }
     }
-  }
 
-  if (etat) { // If the Start button has been pressed
-    Serial.print("Il y a ");
-    Serial.print(nb_points);
-    Serial.println(" points");
+    if (etat) { // Si l'état est actif (mouvement en cours)
+        executeChemin(); // Exécution du chemin prédéfini
+    }
+}
 
+// Fonction de réinitialisation à la position (0, 0)
+void resetPosition() {
+    int nbPasX = round(((0 - x) / pasX) * NbPasTour);
+    int nbPasY = round(((0 - y) / pasY) * NbPasTour);
+    int directionY = (nbPasY >= 0) ? 1 : -1;
+    nbPasY = abs(nbPasY);
+
+    moteurX.setSpeed(10);
+    moteurX.step(nbPasX); // Retour sur X
+    moteurX.setSpeed(16);
+    for (int i = 1; i <= nbPasY; i++) {
+        moteurY1.step(directionY); // Retour sur Y1
+        moteurY2.step(directionY); // Retour sur Y2
+    }
+
+    x = 0;
+    y = 0;
+}
+
+// Fonction d'exécution du chemin
+void executeChemin() {
     for (int k = 0; k < nb_points; k++) {
-      float xf, yf;
+        float xf = Xcoord[k];
+        float yf = Ycoord[k];
 
-      // Determine where to go
-      xf = float(Xcoord[k]);
-      yf = float(Ycoord[k]);
+        float nbPasX = round(((xf - x) / pasX) * NbPasTour);
+        float nbPasY = round(((yf - y) / pasY) * NbPasTour);
 
-      // Print start and end coordinates for the segment
-      Serial.print("Segment "); 
-      Serial.print(k);
-      Serial.print(": Start (");
-      Serial.print(x);
-      Serial.print(", ");
-      Serial.print(y);
-      Serial.print("), End (");
-      Serial.print(xf);
-      Serial.print(", ");
-      Serial.print(yf);
-      Serial.println(")");
+        int directionX = (nbPasX >= 0) ? 1 : -1;
+        int directionY = (nbPasY >= 0) ? 1 : -1;
 
-      // Convert distances to steps for each axis
-      float nbPasX = round(((xf - x) / pasX) * NbPasTour);
-      float nbPasY = round(((yf - y) / pasY) * NbPasTour);
-        
-      // Print step counts for each axis
-      Serial.print("nbPasX : ");
-      Serial.println(nbPasX);
-      Serial.print("nbPasY : ");
-      Serial.println(nbPasY);
+        nbPasX = abs(nbPasX);
+        nbPasY = abs(nbPasY);
 
-      // Determine directions based on the sign of nbPasX and nbPasY
-      int directionX = (nbPasX >= 0) ? 1 : -1;
-      int directionY = (nbPasY >= 0) ? 1 : -1;
+        float maxSteps = max(nbPasX, nbPasY);
+        float stepTempo = (speed != NULL) ? (1000 * (sqrt(pow((xf - x), 2) + pow((yf - y), 2)) / speed[k]) / maxSteps) : 1;
 
-      // Take absolute values for step counting
-      nbPasX = abs(nbPasX);
-      nbPasY = abs(nbPasY);
+        int incrX = 0;
+        int incrY = 0;
 
-      // Calculate the distance between start and end points
-      float distance = sqrt(pow((xf - x), 2) + pow((yf - y), 2));
-        
-      // Calculate time for movement in seconds based on speed
-      float temps = distance / speed[k];
+        unsigned long nextStepTime = millis();
+        for (int i = 1; i <= maxSteps; i++) {
+            while (millis() < nextStepTime) {}
+            if (incrX < i * (nbPasX / maxSteps)) {
+                moteurX.step(directionX);
+                incrX++;
+            }
+            if (incrY < i * (nbPasY / maxSteps)) {
+                moteurY1.step(directionY);
+                moteurY2.step(directionY);
+                incrY++;
+            }
+            nextStepTime += stepTempo;
+        }
 
-      Serial.print("speed[k] : ");
-      Serial.println(speed[k]);
-
-      Serial.print("distance : ");
-      Serial.println(distance);
-      Serial.print("temps : ");
-      Serial.println(temps);
-
-      // Perform synchronized movement across both axes
-      float maxSteps = max(nbPasX, nbPasY); // Maximum steps for synchronization
-      
-      float temps_tour = temps/(maxSteps/NbPasTour); // en s/tour
-      float temps_boucle = (temps_tour + 1.23)/0.99;
-      
-      
-      int incrX = 0;
-      int incrY = 0;
-
-      float stepTempo = 1000*temps/maxSteps; // en ms
-      Serial.print("stepTempo : ");
-      Serial.println(stepTempo);
-
-      float avanceX = nbPasX / maxSteps;
-      float avanceY = nbPasY / maxSteps;
-
-      unsigned long startTime, endTime;
-      startTime = millis();
-
-      float nextStepTime = millis(); // Temps cible du prochain pas
-      for (int i = 1; i <= maxSteps; i++) {
-          while (millis() < nextStepTime) {
-              // Attente active sans bloquer totalement
-              // Vous pouvez insérer ici d'autres tâches ou surveiller des événements
-          }
-          if (incrX < i * avanceX) {
-              moteurX.step(directionX); // Step motor X
-              incrX++;
-          }
-          if (incrY < i * avanceY) {
-              moteurY1.step(directionY); // Step motor Y1
-              moteurY2.step(directionY); // Step motor Y2
-              incrY++;
-          }
-          nextStepTime += stepTempo; // Planifier le prochain pas
-      }
-
-      endTime = millis();
-      Serial.print("Durée d'exécution : ");
-      Serial.print(endTime - startTime);
-      Serial.println(" millisecondes");
-      Serial.print("nextStepTime - startTime : ");
-      Serial.println(nextStepTime-startTime);
-
-      // Update new coordonates
-      x = xf;
-      y = yf;
+        x = xf;
+        y = yf;
     }
-  }
 }
 
-
-// Counts the number of values in a space-separated string
+// Fonction pour compter le nombre de valeurs dans une chaîne
 int compterValeurs(String valeurs) {
-  int count = 1;  // At least one value
-  for (int i = 0; i < valeurs.length(); i++) {
-    if (valeurs.charAt(i) == ' ') {
-      count++;
+    int count = 1;
+    for (int i = 0; i < valeurs.length(); i++) {
+        if (valeurs.charAt(i) == ' ') count++;
     }
-  }
-  return count;
+    return count;
 }
 
-// Extracts values from a space-separated string into a float array
+// Fonction pour extraire les valeurs d'une chaîne dans un tableau float
 void extraireValeurs(String valeurs, float* tableau, int taille) {
-  char buffer[valeurs.length() + 1];
-  valeurs.toCharArray(buffer, valeurs.length() + 1);
+    char buffer[valeurs.length() + 1];
+    valeurs.toCharArray(buffer, valeurs.length() + 1);
 
-  // Use strtok to split values
-  char* token = strtok(buffer, " ");
-  int index = 0;
+    char* token = strtok(buffer, " ");
+    int index = 0;
 
-  while (token != NULL && index < taille) {
-    tableau[index] = atof(token);  // Convert to float and store in array
-    token = strtok(NULL, " ");
-    index++;
-  }
+    while (token != NULL && index < taille) {
+        tableau[index] = atof(token);
+        token = strtok(NULL, " ");
+        index++;
+    }
 }
